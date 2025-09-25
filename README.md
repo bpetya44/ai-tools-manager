@@ -1,9 +1,31 @@
-# vibecode-full-stack-starter-kit - Full-Stack Development Environment
+# AI Tools Manager
 
-Generated on: Thu Sep 4 01:37:12 PM EEST 2025
-Location: /home/softart/scripts/vibecode-full-stack-starter-kit
+A portfolio-ready full-stack web app for managing AI tools.  
+Built with **Next.js 15** (React 19, Tailwind CSS) and **Laravel 12** (PHP 8.2), powered by **MySQL + Redis** in Docker.  
+Implements secure **authentication (Bearer tokens with Sanctum)**, **role-based access control (Admin/Manager/User)**, and full **CRUD for tools**.
 
-## 🚀 Tech Stack
+🚀 **Demo Ready**
+
+- **Frontend**: Next.js app (http://localhost:8200)
+- **Backend API**: Laravel API (http://localhost:8201/api)
+- **Health**: http://localhost:8201/api/health
+
+👤 **Seed Users**
+
+- Admin → `admin@example.com` / `Password123!`
+- Manager → `manager@example.com` / `Password123!`
+- User → `user@example.com` / `Password123!`
+
+⚡ **Features**
+
+- JWT-style bearer token authentication with Laravel Sanctum
+- Role-based navigation & protected routes
+- CRUD for Tools with categories, validation, and error handling
+- Dockerized MySQL + Redis for easy local dev
+- Vitest & Playwright tests for frontend and e2e flows
+- Beginner-friendly README and scripts for quick setup
+
+🛠️ **Tech Stack**
 
 - **Frontend**: Next.js + React + TypeScript (Port 8200)
 - **Backend**: Laravel + PHP 8.2 + Nginx (Port 8201)
@@ -37,6 +59,7 @@ Location: /home/softart/scripts/vibecode-full-stack-starter-kit
 - `./laravel-setup.sh` - Full Laravel initialization
 - `./db-manage.sh` - Database management utilities
 - `node scripts/dev-check.mjs` - Check development environment health
+- `node scripts/security-check.mjs` - Verify no secrets are committed
 
 ## 📁 Project Structure
 
@@ -199,6 +222,12 @@ If you're experiencing network errors between the frontend and backend:
 node scripts/dev-check.mjs
 ```
 
+### 1.1. Security Check
+
+```bash
+node scripts/security-check.mjs
+```
+
 ### 2. Verify Services Are Running
 
 ```bash
@@ -266,6 +295,33 @@ After seeding, you can use these accounts:
 - **Admin**: `admin@example.com` / `Password123!`
 - **Manager**: `manager@example.com` / `Password123!`
 - **User**: `user@example.com` / `Password123!`
+
+## 🔒 Security Checklist
+
+### ✅ Secrets Protection
+
+- [x] All `.env*` files are in `.gitignore`
+- [x] Database passwords are excluded from version control
+- [x] API keys and tokens are not hardcoded
+- [x] Authentication secrets are properly configured
+- [x] Laravel Sanctum tokens are handled securely
+
+### ⚠️ Security Notes
+
+- **Demo passwords** (`Password123!`) are for development only
+- **Change all passwords** before production deployment
+- **Rotate API keys** and secrets regularly
+- **Use HTTPS** in production environments
+- **Enable CORS** only for trusted domains
+
+### 🛡️ Production Security
+
+1. Generate strong passwords for all services
+2. Use environment-specific `.env` files
+3. Enable Laravel's security middleware
+4. Configure proper CORS origins
+5. Use database connection encryption
+6. Enable Redis AUTH in production
 
 ---
 
