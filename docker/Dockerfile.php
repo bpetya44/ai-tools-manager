@@ -13,6 +13,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
+    oniguruma-dev \
     supervisor \
     nginx \
     mysql-client \
@@ -20,12 +21,13 @@ RUN apk add --no-cache \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        mysqli \
-        gd \
-        zip \
-        bcmath \
-        pcntl
+    pdo_mysql \
+    mysqli \
+    gd \
+    zip \
+    bcmath \
+    pcntl \
+    mbstring
 
 # Install Redis extension
 RUN apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
@@ -42,6 +44,15 @@ RUN addgroup -g 1000 laravel && adduser -u 1000 -G laravel -s /bin/sh -D laravel
 # Copy project-specific configurations
 COPY docker/php.ini /usr/local/etc/php/conf.d/project.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create mbstring configuration to suppress deprecated warnings
+RUN echo "; mbstring configuration - suppress deprecated warnings" > /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "mbstring.language = neutral" >> /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "mbstring.encoding_translation = Off" >> /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "; Explicitly unset deprecated settings" >> /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "mbstring.internal_encoding =" >> /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "mbstring.http_input =" >> /usr/local/etc/php/conf.d/99-mbstring.ini && \
+    echo "mbstring.http_output =" >> /usr/local/etc/php/conf.d/99-mbstring.ini
 
 # Set working directory and permissions
 WORKDIR /var/www/html

@@ -13,11 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Seed roles first
+        $this->call([
+            RoleSeeder::class,
+            CategorySeeder::class,
+            UserSeeder::class,
+            ToolSeeder::class,
         ]);
+
+        // Optional: Create additional random users for testing
+        // User::factory(10)->create();
     }
 }
