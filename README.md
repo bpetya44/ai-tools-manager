@@ -19,10 +19,13 @@ Implements secure **authentication (Bearer tokens with Sanctum)**, **role-based 
 ⚡ **Features**
 
 - JWT-style bearer token authentication with Laravel Sanctum
-- Role-based navigation & protected routes
-- CRUD for Tools with categories, validation, and error handling
+- Role-based access control (RBAC) with Admin/Manager/User roles
+- **Complete Tools Management System** with full CRUD operations
+- Search and filter tools by name and category
+- Form validation (client-side and server-side)
+- Standardized JSON API responses with error handling
 - Dockerized MySQL + Redis for easy local dev
-- Vitest & Playwright tests for frontend and e2e flows
+- Comprehensive test suite (PHPUnit, Vitest, Playwright)
 - Beginner-friendly README and scripts for quick setup
 
 🛠️ **Tech Stack**
@@ -52,6 +55,116 @@ Implements secure **authentication (Bearer tokens with Sanctum)**, **role-based 
    ./stop.sh
    ```
 
+## 🛠️ Tools Management System
+
+### Overview
+
+The application includes a complete tools management system with role-based access control:
+
+- **Admin**: Full CRUD access (Create, Read, Update, Delete)
+- **Manager**: Create and Update access only
+- **User**: Read-only access (view and search tools)
+
+### Database Schema
+
+**Tools Categories** (`tools_categories`):
+
+- `id` (Primary Key)
+- `name` (Unique)
+- `created_at`, `updated_at`
+
+**Tools** (`tools_tools`):
+
+- `id` (Primary Key)
+- `name` (Required, max 120 chars)
+- `url` (Required, valid URL, max 255 chars)
+- `description` (Optional, max 500 chars)
+- `category_id` (Foreign Key to tools_categories)
+- `created_by` (Foreign Key to users, optional)
+- `created_at`, `updated_at`
+
+### API Endpoints
+
+All endpoints require Bearer token authentication:
+
+#### Public Endpoints
+
+- `GET /api/tools-categories` - List all categories
+
+#### Authenticated Endpoints
+
+- `GET /api/tools-list` - List tools (with search/filter support)
+  - Query params: `q` (search), `category_id`, `page`, `per_page`
+- `GET /api/tools-list/{id}` - Get single tool
+- `POST /api/tools-list` - Create tool (Admin/Manager only)
+- `PUT /api/tools-list/{id}` - Update tool (Admin/Manager only)
+- `DELETE /api/tools-list/{id}` - Delete tool (Admin only)
+
+#### Example API Usage
+
+```bash
+# Get authentication token
+TOKEN=$(curl -X POST http://localhost:8201/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"Password123!"}' \
+  -s | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+
+# List tools
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8201/api/tools-list
+
+# Create a tool
+curl -X POST http://localhost:8201/api/tools-list \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "New Tool",
+    "url": "https://example.com",
+    "description": "A sample tool",
+    "category_id": 1
+  }'
+
+# Search tools
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8201/api/tools-list?q=analytics&category_id=1"
+```
+
+### Frontend Features
+
+- **Tools List Page** (`/tools`):
+
+  - Search by tool name
+  - Filter by category
+  - Pagination support
+  - Role-based action buttons
+
+- **Add Tool Page** (`/tools/new`):
+
+  - Form validation (client-side and server-side)
+  - Real-time character counting
+  - Error handling with inline messages
+
+- **Edit Tool Page** (`/tools/{id}/edit`):
+  - Pre-populated form with existing data
+  - Same validation as add form
+  - Update functionality
+
+### Sample Data
+
+The system comes pre-seeded with:
+
+**Categories:**
+
+- Analytics
+- Marketing
+- Security
+
+**Tools (10 total):**
+
+- **Analytics**: Google Analytics, Mixpanel, Hotjar
+- **Marketing**: HubSpot, Mailchimp, Buffer, Canva
+- **Security**: 1Password, Auth0, Cloudflare
+
 ## 🔧 Management Scripts
 
 - `./start.sh` - Start all services with auto-setup
@@ -60,6 +173,56 @@ Implements secure **authentication (Bearer tokens with Sanctum)**, **role-based 
 - `./db-manage.sh` - Database management utilities
 - `node scripts/dev-check.mjs` - Check development environment health
 - `node scripts/security-check.mjs` - Verify no secrets are committed
+
+## 🧪 Testing
+
+### Backend Tests (PHPUnit)
+
+```bash
+# Run all tests
+docker compose exec php_fpm php artisan test
+
+# Run specific test suite
+docker compose exec php_fpm php artisan test --filter=ToolsToolTest
+
+# Run with coverage
+docker compose exec php_fpm php artisan test --coverage
+```
+
+### Frontend Tests (Vitest)
+
+```bash
+# Run all tests
+cd frontend && npm run test
+
+# Run tests once
+cd frontend && npm run test:run
+
+# Run with coverage
+cd frontend && npm run test -- --coverage
+```
+
+### End-to-End Tests (Playwright)
+
+```bash
+# Run all E2E tests
+cd frontend && npx playwright test
+
+# Run specific test file
+cd frontend && npx playwright test tests/tools.spec.ts
+
+# Run tests in headed mode (see browser)
+cd frontend && npx playwright test --headed
+
+# Generate test report
+cd frontend && npx playwright test --reporter=html
+```
+
+### Test Coverage
+
+- **Backend**: 12 tests covering all CRUD operations, RBAC, and validation
+- **Frontend**: 4 tests covering API utility functions
+- **E2E**: 4 test scenarios covering user workflows and role permissions
 
 ## 📁 Project Structure
 

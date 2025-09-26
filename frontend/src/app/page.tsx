@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -26,6 +26,12 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               {user ? (
                 <>
+                  <Link
+                    href="/tools"
+                    className="text-indigo-600 hover:text-indigo-500 px-3 py-2 text-sm font-medium"
+                  >
+                    Tools
+                  </Link>
                   <span className="text-gray-700">Welcome, {user.name}!</span>
                   <button
                     onClick={logout}
@@ -71,20 +77,43 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Welcome to your dashboard!
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-6">
                 You are successfully logged in as <strong>{user.name}</strong>
               </p>
+              <div className="flex gap-4 items-center justify-center flex-col sm:flex-row">
+                <Link
+                  href="/tools"
+                  className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-indigo-600 text-white gap-2 hover:bg-indigo-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+                >
+                  View Tools
+                </Link>
+                {(user.role?.slug === "admin" ||
+                  user.role?.slug === "manager") && (
+                  <Link
+                    href="/tools/new"
+                    className="rounded-full border border-solid border-indigo-600 text-indigo-600 transition-colors flex items-center justify-center hover:bg-indigo-50 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+                  >
+                    Add Tool
+                  </Link>
+                )}
+              </div>
             </div>
           ) : (
             <>
               <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
                 <li className="mb-2 tracking-[-.01em]">
                   Get started by{" "}
-                  <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  <Link
+                    href="/login"
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
                     logging in
                   </Link>{" "}
                   or{" "}
-                  <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  <Link
+                    href="/signup"
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
                     creating an account
                   </Link>
                   .

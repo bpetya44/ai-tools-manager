@@ -3,10 +3,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiRequestWithAuth } from "@/lib/api";
 
+interface Role {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
 interface User {
   id: number;
   name: string;
   email: string;
+  role?: Role;
 }
 
 interface AuthContextType {

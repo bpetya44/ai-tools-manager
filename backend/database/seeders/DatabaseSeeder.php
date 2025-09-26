@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             UserSeeder::class,
             ToolSeeder::class,
+            ToolsCategorySeeder::class,
+            ToolsToolSeeder::class,
         ]);
 
         // Optional: Create additional random users for testing

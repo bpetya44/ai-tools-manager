@@ -25,17 +25,21 @@ class AuthController extends Controller
             ], 422);
         }
 
+        // Get the default 'user' role
+        $userRole = \App\Models\Role::where('slug', 'user')->first();
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role_id' => $userRole->id,
         ]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user,
+            'user' => $user->load('role'),
             'token' => $token
         ], 201);
     }
@@ -60,7 +64,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = Auth::user();
+        $user = Auth::user()->load('role');
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([

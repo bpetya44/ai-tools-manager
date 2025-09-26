@@ -32,9 +32,13 @@ test.describe("Authentication Flow", () => {
     // Click on signup link
     await page.click("text=Sign up");
 
+    // Generate unique email to avoid conflicts
+    const timestamp = Date.now();
+    const uniqueEmail = `testuser${timestamp}@example.com`;
+
     // Fill in registration form
     await page.fill('input[name="name"]', "Test User");
-    await page.fill('input[name="email"]', "testuser@example.com");
+    await page.fill('input[name="email"]', uniqueEmail);
     await page.fill('input[name="password"]', "Password123!");
     await page.fill('input[name="password_confirmation"]', "Password123!");
 

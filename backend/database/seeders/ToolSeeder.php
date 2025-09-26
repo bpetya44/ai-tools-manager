@@ -158,7 +158,10 @@ class ToolSeeder extends Seeder
         ];
 
         foreach ($tools as $tool) {
-            Tool::create($tool);
+            Tool::firstOrCreate(
+                ['slug' => $tool['slug']],
+                $tool
+            );
         }
     }
 }
