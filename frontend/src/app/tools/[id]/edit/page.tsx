@@ -26,6 +26,12 @@ export default function EditToolPage() {
     description: "",
     category_id: "",
   });
+  const [originalData, setOriginalData] = useState({
+    name: "",
+    url: "",
+    description: "",
+    category_id: "",
+  });
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -33,6 +39,37 @@ export default function EditToolPage() {
   // Check if user has permission to edit tools
   const canEdit =
     user?.role?.slug === "admin" || user?.role?.slug === "manager";
+
+  const loadToolAndCategories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [toolResponse, categoriesResponse] = await Promise.all([
+        getTool(token!, toolId),
+        getToolCategories(token!),
+      ]);
+
+      const tool = toolResponse.data;
+      const toolData = {
+        name: tool.name,
+        url: tool.url,
+        description: tool.description || "",
+        category_id: tool.category.id.toString(),
+      };
+
+      setFormData(toolData);
+      setOriginalData(toolData);
+      setCategories(categoriesResponse.data);
+    } catch (err: any) {
+      console.error("Error loading tool:", err);
+      if (err.status === 404) {
+        setError("Tool not found");
+      } else {
+        setError(`Failed to load tool: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [token, toolId]);
 
   useEffect(() => {
     if (!token) {
@@ -48,56 +85,20 @@ export default function EditToolPage() {
     loadToolAndCategories();
   }, [token, canEdit, router, toolId, loadToolAndCategories]);
 
-  const loadToolAndCategories = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [toolResponse, categoriesResponse] = await Promise.all([
-        getTool(token!, toolId),
-        getToolCategories(token!),
-      ]);
-
-      const tool = toolResponse.data;
-      setFormData({
-        name: tool.name,
-        url: tool.url,
-        description: tool.description || "",
-        category_id: tool.category.id.toString(),
-      });
-
-      setCategories(categoriesResponse.data);
-    } catch (err: any) {
-      if (err.status === 404) {
-        setError("Tool not found");
-      } else {
-        setError("Failed to load tool");
-      }
-      console.error("Error loading tool:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token, toolId]);
-
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      errors.name = "Tool name is required";
-    } else if (formData.name.length > 120) {
+    // Only validate fields that have been modified and are not empty
+    if (formData.name.trim() && formData.name.length > 120) {
       errors.name = "Tool name must be less than 120 characters";
     }
 
-    if (!formData.url.trim()) {
-      errors.url = "Tool URL is required";
-    } else {
+    if (formData.url.trim()) {
       try {
         new URL(formData.url);
       } catch {
         errors.url = "Please enter a valid URL";
       }
-    }
-
-    if (!formData.category_id) {
-      errors.category_id = "Please select a category";
     }
 
     if (formData.description && formData.description.length > 500) {
@@ -119,15 +120,36 @@ export default function EditToolPage() {
       setSaving(true);
       setError("");
 
-      await updateTool(token!, toolId, {
-        name: formData.name.trim(),
-        url: formData.url.trim(),
-        description: formData.description.trim() || undefined,
-        category_id: parseInt(formData.category_id),
-      });
+      // Only send fields that have been modified
+      const updateData: any = {};
+
+      if (formData.name.trim() !== originalData.name) {
+        updateData.name = formData.name.trim();
+      }
+
+      if (formData.url.trim() !== originalData.url) {
+        updateData.url = formData.url.trim();
+      }
+
+      if (formData.description.trim() !== originalData.description) {
+        updateData.description = formData.description.trim() || undefined;
+      }
+
+      if (formData.category_id !== originalData.category_id) {
+        updateData.category_id = parseInt(formData.category_id);
+      }
+
+      // If no fields were changed, show a message and return
+      if (Object.keys(updateData).length === 0) {
+        setError("No changes detected. Please modify at least one field.");
+        return;
+      }
+
+      await updateTool(token!, toolId, updateData);
 
       router.push("/tools");
     } catch (err: any) {
+      console.error("Update error:", err);
       if (err.status === 422 && err.data?.details) {
         // Handle validation errors from server
         setValidationErrors(err.data.details);
@@ -195,6 +217,10 @@ export default function EditToolPage() {
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-900">Edit Tool</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              You can edit any field individually. Only modified fields will be
+              updated.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">

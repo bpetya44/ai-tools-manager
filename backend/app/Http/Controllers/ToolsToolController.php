@@ -47,10 +47,32 @@ class ToolsToolController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreToolRequest $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
+        // Get JSON data from request body
+        $jsonData = json_decode($request->getContent(), true) ?: [];
+
+        // Manual validation using the JSON data
+        $validator = \Validator::make($jsonData, [
+            'name' => 'required|string|max:120',
+            'url' => 'required|url|max:255',
+            'category_id' => 'required|exists:tools_categories,id',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'The given data was invalid',
+                'details' => $validator->errors(),
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
+
+        // Use the JSON data for the creation
         $tool = ToolsTool::create([
-            ...$request->validated(),
+            ...$jsonData,
             'created_by' => $request->user()->id,
         ]);
 
@@ -77,9 +99,39 @@ class ToolsToolController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateToolRequest $request, ToolsTool $toolsTool): JsonResponse
+    public function update(Request $request, ToolsTool $toolsTool): JsonResponse
     {
-        $toolsTool->update($request->validated());
+        // Get JSON data from request body
+        $jsonData = json_decode($request->getContent(), true) ?: [];
+
+        // Manual validation for only the fields that are present
+        $rules = [];
+        $data = [];
+
+        if (isset($jsonData['name'])) {
+            $rules['name'] = 'string|max:120';
+            $data['name'] = $jsonData['name'];
+        }
+        if (isset($jsonData['url'])) {
+            $rules['url'] = 'url|max:255';
+            $data['url'] = $jsonData['url'];
+        }
+        if (isset($jsonData['category_id'])) {
+            $rules['category_id'] = 'exists:tools_categories,id';
+            $data['category_id'] = $jsonData['category_id'];
+        }
+        if (isset($jsonData['description'])) {
+            $rules['description'] = 'nullable|string|max:500';
+            $data['description'] = $jsonData['description'];
+        }
+
+        // Validate the data
+        $validatedData = $request->validate($rules);
+
+        // Use the JSON data for the update
+        $toolsTool->fill($data);
+        $result = $toolsTool->save();
+
         $toolsTool->load(['category', 'creator']);
 
         return response()->json([

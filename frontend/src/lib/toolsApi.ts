@@ -61,7 +61,7 @@ export async function getTools(
   if (params?.per_page)
     queryParams.append("per_page", params.per_page.toString());
 
-  const endpoint = `/tools-list${
+  const endpoint = `/tools${
     queryParams.toString() ? `?${queryParams.toString()}` : ""
   }`;
 
@@ -73,7 +73,7 @@ export async function getTool(
   token: string,
   id: number
 ): Promise<{ data: Tool }> {
-  return apiRequestWithAuth<{ data: Tool }>(`/tools-list/${id}`, token);
+  return apiRequestWithAuth<{ data: Tool }>(`/tools/${id}`, token);
 }
 
 // Create a new tool
@@ -81,14 +81,10 @@ export async function createTool(
   token: string,
   tool: CreateToolRequest
 ): Promise<{ message: string; data: Tool }> {
-  return apiRequestWithAuth<{ message: string; data: Tool }>(
-    "/tools-list",
-    token,
-    {
-      method: "POST",
-      body: JSON.stringify(tool),
-    }
-  );
+  return apiRequestWithAuth<{ message: string; data: Tool }>("/tools", token, {
+    method: "POST",
+    body: JSON.stringify(tool),
+  });
 }
 
 // Update an existing tool
@@ -98,7 +94,7 @@ export async function updateTool(
   tool: UpdateToolRequest
 ): Promise<{ message: string; data: Tool }> {
   return apiRequestWithAuth<{ message: string; data: Tool }>(
-    `/tools-list/${id}`,
+    `/tools/${id}`,
     token,
     {
       method: "PUT",
@@ -112,7 +108,7 @@ export async function deleteTool(
   token: string,
   id: number
 ): Promise<{ message: string }> {
-  return apiRequestWithAuth<{ message: string }>(`/tools-list/${id}`, token, {
+  return apiRequestWithAuth<{ message: string }>(`/tools/${id}`, token, {
     method: "DELETE",
   });
 }

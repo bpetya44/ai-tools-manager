@@ -25,6 +25,16 @@ export default function NewToolPage() {
   const canCreate =
     user?.role?.slug === "admin" || user?.role?.slug === "manager";
 
+  const loadCategories = useCallback(async () => {
+    try {
+      const response = await getToolCategories(token!);
+      setCategories(response.data);
+    } catch (err) {
+      setError("Failed to load categories");
+      console.error("Error loading categories:", err);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!token) {
       router.push("/login");
@@ -38,16 +48,6 @@ export default function NewToolPage() {
 
     loadCategories();
   }, [token, canCreate, router, loadCategories]);
-
-  const loadCategories = useCallback(async () => {
-    try {
-      const response = await getToolCategories(token!);
-      setCategories(response.data);
-    } catch (err) {
-      setError("Failed to load categories");
-      console.error("Error loading categories:", err);
-    }
-  }, [token]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};

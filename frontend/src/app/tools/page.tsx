@@ -28,14 +28,19 @@ export default function ToolsPage() {
     user?.role?.slug === "admin" || user?.role?.slug === "manager";
   const canDelete = user?.role?.slug === "admin";
 
-  useEffect(() => {
-    if (token) {
-      loadTools();
-      loadCategories();
+  // --- define memoized loaders FIRST ---
+  const loadCategories = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await getToolCategories(token);
+      setCategories(response.data);
+    } catch (err) {
+      console.error("Error loading categories:", err);
     }
-  }, [token, currentPage, searchTerm, selectedCategory, loadTools, loadCategories]);
+  }, [token]);
 
   const loadTools = useCallback(async () => {
+    if (!token) return;
     try {
       setLoading(true);
       const response = await getTools(token!, {
@@ -54,24 +59,20 @@ export default function ToolsPage() {
     }
   }, [token, searchTerm, selectedCategory, currentPage]);
 
-  const loadCategories = useCallback(async () => {
-    try {
-      const response = await getToolCategories(token!);
-      setCategories(response.data);
-    } catch (err) {
-      console.error("Error loading categories:", err);
+  useEffect(() => {
+    if (token) {
+      loadCategories();
+      loadTools();
     }
-  }, [token]);
+  }, [token, loadCategories, loadTools]); // depend on token and memoized fns
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) {
-      return;
-    }
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
       setDeletingId(id);
       await deleteTool(token!, id);
-      setTools(tools.filter((tool) => tool.id !== id));
+      setTools((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
       setError("Failed to delete tool");
       console.error("Error deleting tool:", err);
@@ -82,8 +83,8 @@ export default function ToolsPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // reset to page 1 and let the effect trigger loadTools with new state
     setCurrentPage(1);
-    loadTools();
   };
 
   if (!token) {

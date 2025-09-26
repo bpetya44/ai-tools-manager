@@ -24,18 +24,28 @@ Route::get('/health', function () {
     ]);
 });
 
+// Debug endpoint for testing PUT requests
+Route::put('/debug-put', function (Request $request) {
+    return response()->json([
+        'method' => $request->method(),
+        'content_type' => $request->header('Content-Type'),
+        'raw_input' => $request->getContent(),
+        'json_data' => json_decode($request->getContent(), true),
+        'all_data' => $request->all(),
+        'only_name' => $request->only(['name']),
+    ]);
+});
+
 // Authentication routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Public routes
-Route::get('/tools', [ToolController::class, 'index']);
-Route::get('/tools/{tool}', [ToolController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
-// New Tools API routes with RBAC
+// Tools API routes with RBAC
 Route::middleware('auth:sanctum')->group(function () {
     // Get categories for tools (all authenticated users)
     Route::get('/tools-categories', function () {
@@ -45,17 +55,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // List and view tools (all authenticated users)
-    Route::get('/tools-list', [ToolsToolController::class, 'index']);
-    Route::get('/tools-list/{toolsTool}', [ToolsToolController::class, 'show']);
+    Route::get('/tools', [ToolsToolController::class, 'index']);
+    Route::get('/tools/{toolsTool}', [ToolsToolController::class, 'show']);
 
     // Create and update tools (Admin/Manager only)
     Route::middleware('role:admin,manager')->group(function () {
-        Route::post('/tools-list', [ToolsToolController::class, 'store']);
-        Route::put('/tools-list/{toolsTool}', [ToolsToolController::class, 'update']);
+        Route::post('/tools', [ToolsToolController::class, 'store']);
+        Route::put('/tools/{toolsTool}', [ToolsToolController::class, 'update']);
     });
 
     // Delete tools (Admin only)
     Route::middleware('role:admin')->group(function () {
-        Route::delete('/tools-list/{toolsTool}', [ToolsToolController::class, 'destroy']);
+        Route::delete('/tools/{toolsTool}', [ToolsToolController::class, 'destroy']);
     });
 });

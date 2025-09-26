@@ -22,9 +22,9 @@ class UpdateToolRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:120',
-            'url' => 'required|url|max:255',
-            'category_id' => 'required|exists:tools_categories,id',
+            'name' => 'sometimes|string|max:120',
+            'url' => 'sometimes|url|max:255',
+            'category_id' => 'sometimes|exists:tools_categories,id',
             'description' => 'nullable|string|max:500',
         ];
     }
@@ -35,12 +35,9 @@ class UpdateToolRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'The tool name is required.',
             'name.max' => 'The tool name may not be greater than 120 characters.',
-            'url.required' => 'The tool URL is required.',
             'url.url' => 'The tool URL must be a valid URL.',
             'url.max' => 'The tool URL may not be greater than 255 characters.',
-            'category_id.required' => 'Please select a category.',
             'category_id.exists' => 'The selected category is invalid.',
             'description.max' => 'The description may not be greater than 500 characters.',
         ];

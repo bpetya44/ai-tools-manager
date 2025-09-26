@@ -93,12 +93,12 @@ All endpoints require Bearer token authentication:
 
 #### Authenticated Endpoints
 
-- `GET /api/tools-list` - List tools (with search/filter support)
+- `GET /api/tools` - List tools (with search/filter support)
   - Query params: `q` (search), `category_id`, `page`, `per_page`
-- `GET /api/tools-list/{id}` - Get single tool
-- `POST /api/tools-list` - Create tool (Admin/Manager only)
-- `PUT /api/tools-list/{id}` - Update tool (Admin/Manager only)
-- `DELETE /api/tools-list/{id}` - Delete tool (Admin only)
+- `GET /api/tools/{id}` - Get single tool
+- `POST /api/tools` - Create tool (Admin/Manager only)
+- `PUT /api/tools/{id}` - Update tool (Admin/Manager only)
+- `DELETE /api/tools/{id}` - Delete tool (Admin only)
 
 #### Example API Usage
 
@@ -111,10 +111,10 @@ TOKEN=$(curl -X POST http://localhost:8201/api/login \
 
 # List tools
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8201/api/tools-list
+  http://localhost:8201/api/tools
 
 # Create a tool
-curl -X POST http://localhost:8201/api/tools-list \
+curl -X POST http://localhost:8201/api/tools \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -126,7 +126,7 @@ curl -X POST http://localhost:8201/api/tools-list \
 
 # Search tools
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8201/api/tools-list?q=analytics&category_id=1"
+  "http://localhost:8201/api/tools?q=analytics&category_id=1"
 ```
 
 ### Frontend Features
@@ -146,8 +146,9 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 - **Edit Tool Page** (`/tools/{id}/edit`):
   - Pre-populated form with existing data
+  - Partial updates (only changed fields are sent)
   - Same validation as add form
-  - Update functionality
+  - Real-time change detection
 
 ### Sample Data
 
@@ -221,8 +222,25 @@ cd frontend && npx playwright test --reporter=html
 ### Test Coverage
 
 - **Backend**: 12 tests covering all CRUD operations, RBAC, and validation
-- **Frontend**: 4 tests covering API utility functions
+- **Frontend**: 4 tests covering API utility functions and form validation
 - **E2E**: 4 test scenarios covering user workflows and role permissions
+
+### Database Migrations & Seeding
+
+```bash
+# Run migrations and seed the database
+docker compose exec php_fpm php artisan migrate --force && docker compose exec php_fpm php artisan db:seed
+
+# Or run individually
+docker compose exec php_fpm php artisan migrate
+docker compose exec php_fpm php artisan db:seed
+```
+
+**Seeded Data:**
+
+- 3 users (Admin, Manager, User) with password `Password123!`
+- 3 categories (Analytics, Marketing, Security)
+- 10 demo tools across all categories
 
 ## 📁 Project Structure
 
@@ -374,6 +392,26 @@ To update the environment:
 
 1. Pull latest images: `docker compose pull`
 2. Rebuild services: `docker compose up -d --build`
+
+## ✅ Current Status
+
+**Fully Working Features:**
+
+- ✅ Authentication system (login/register with Bearer tokens)
+- ✅ Role-based access control (Admin/Manager/User)
+- ✅ Complete Tools Management System (CRUD operations)
+- ✅ Search and filtering functionality
+- ✅ Form validation (client-side and server-side)
+- ✅ Partial updates for tool editing
+- ✅ Real-time UI updates after changes
+- ✅ Comprehensive test suite
+
+**API Endpoints Status:**
+
+- ✅ All endpoints standardized to `/api/tools/{id}` format
+- ✅ Proper JSON request/response handling
+- ✅ Validation and error handling working correctly
+- ✅ Authentication and authorization working
 
 ## 🚨 Troubleshooting "Network Error"
 
