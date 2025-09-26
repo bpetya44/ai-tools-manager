@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, ApiError } from "@/lib/api";
+import FormField from "@/components/FormField";
+import Alert from "@/components/Alert";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -53,104 +55,109 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="name" className="sr-only">
-                Full Name
-              </label>
-              <input
-                id="name"
+    <div className="min-h-screen flex items-center justify-center py-12">
+      <div className="max-w-md w-full">
+        <div className="card">
+          <div className="card-header text-center">
+            <h2 className="prose-title text-[var(--text)]">
+              Create your account
+            </h2>
+            <p className="prose-muted mt-2">
+              Join the AI Tools Manager community
+            </p>
+          </div>
+
+          <div className="card-body">
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {error && (
+                <Alert
+                  type="error"
+                  message={error}
+                  onClose={() => setError("")}
+                />
+              )}
+
+              <FormField
+                label="Full name"
                 name="name"
                 type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Full name"
+                placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
+                disabled={loading}
               />
-            </div>
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
+
+              <FormField
+                label="Email address"
                 name="email"
                 type="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="Enter your email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                hint="We'll never share your email with anyone else"
               />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
+
+              <FormField
+                label="Password"
                 name="password"
                 type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="Create a strong password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                hint="Must be at least 8 characters long"
               />
-            </div>
-            <div>
-              <label htmlFor="password_confirmation" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="password_confirmation"
+
+              <FormField
+                label="Confirm password"
                 name="password_confirmation"
                 type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
+                placeholder="Confirm your password"
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
+                required
+                disabled={loading}
+                error={
+                  password !== passwordConfirmation && passwordConfirmation
+                    ? "Passwords do not match"
+                    : undefined
+                }
               />
-            </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full btn-lg"
+                aria-busy={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating account...
+                  </>
+                ) : (
+                  "Sign up"
+                )}
+              </button>
+            </form>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Creating account..." : "Sign up"}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <span className="text-sm text-gray-600">
+          <div className="card-footer text-center">
+            <span className="prose-muted">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="text-[var(--primary)] hover:text-[var(--primary-600)] font-medium transition-colors"
               >
                 Sign in
               </Link>
             </span>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

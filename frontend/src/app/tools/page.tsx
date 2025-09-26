@@ -10,6 +10,9 @@ import {
   Category,
 } from "@/lib/toolsApi";
 import Link from "next/link";
+import PageHeader from "@/components/PageHeader";
+import LoadingState from "@/components/LoadingState";
+import Alert from "@/components/Alert";
 
 export default function ToolsPage() {
   const { user, token } = useAuth();
@@ -90,49 +93,43 @@ export default function ToolsPage() {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Authentication Required
-          </h2>
-          <p className="text-gray-600 mb-6">Please log in to view tools.</p>
-          <Link
-            href="/login"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            Sign In
-          </Link>
+        <div className="card max-w-md w-full text-center">
+          <div className="card-body">
+            <h2 className="prose-title text-[var(--text)] mb-4">
+              Authentication Required
+            </h2>
+            <p className="prose-muted mb-6">Please log in to view tools.</p>
+            <Link href="/login" className="btn-primary">
+              Sign In
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Tools</h1>
-            {canCreateEdit && (
-              <Link
-                href="/tools/new"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                Add Tool
-              </Link>
-            )}
-          </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Tools"
+        subtitle="Manage and discover AI tools"
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Tools" }]}
+        actions={
+          canCreateEdit ? (
+            <Link href="/tools/new" className="btn-primary">
+              Add Tool
+            </Link>
+          ) : undefined
+        }
+      />
 
-          {/* Search and Filter Form */}
-          <form
-            onSubmit={handleSearch}
-            className="bg-white p-6 rounded-lg shadow"
-          >
+      {/* Search and Filter Form */}
+      <div className="card">
+        <div className="card-body">
+          <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label
-                  htmlFor="search"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="search" className="label">
                   Search Tools
                 </label>
                 <input
@@ -141,14 +138,11 @@ export default function ToolsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search by name..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="input"
                 />
               </div>
               <div>
-                <label
-                  htmlFor="category"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="category" className="label">
                   Category
                 </label>
                 <select
@@ -159,7 +153,7 @@ export default function ToolsPage() {
                       e.target.value === "" ? "" : parseInt(e.target.value)
                     )
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="select"
                 >
                   <option value="">All Categories</option>
                   {categories.map((category) => (
@@ -170,131 +164,150 @@ export default function ToolsPage() {
                 </select>
               </div>
               <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                >
+                <button type="submit" className="btn-primary w-full">
                   Search
                 </button>
               </div>
             </div>
           </form>
         </div>
+      </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
+      {/* Error Message */}
+      {error && (
+        <Alert type="error" message={error} onClose={() => setError("")} />
+      )}
+
+      {/* Tools List */}
+      <div className="card">
+        {loading ? (
+          <div className="card-body">
+            <LoadingState
+              message="Loading tools..."
+              showSkeleton={true}
+              skeletonCount={5}
+            />
           </div>
-        )}
-
-        {/* Tools List */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          {loading ? (
-            <div className="p-6 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-              <p className="mt-2 text-gray-600">Loading tools...</p>
+        ) : tools.length === 0 ? (
+          <div className="card-body text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-[var(--muted)]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                />
+              </svg>
             </div>
-          ) : tools.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-gray-600">No tools found.</p>
-              {canCreateEdit && (
-                <Link
-                  href="/tools/new"
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  Add the first tool
-                </Link>
-              )}
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {tools.map((tool) => (
-                <li key={tool.id} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900">
-                            <a
-                              href={tool.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-indigo-600"
-                            >
-                              {tool.name}
-                            </a>
-                          </h3>
-                          <p className="text-sm text-gray-500">
+            <h3 className="prose-h2 text-[var(--text)] mb-2">No tools found</h3>
+            <p className="prose-muted mb-6">
+              {searchTerm || selectedCategory
+                ? "Try adjusting your search criteria"
+                : "Get started by adding your first tool"}
+            </p>
+            {canCreateEdit && (
+              <Link href="/tools/new" className="btn-primary">
+                Add the first tool
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--border)]">
+            {tools.map((tool) => (
+              <div
+                key={tool.id}
+                className="px-6 py-4 hover:bg-[var(--surface)]/60 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-1">
+                          <a
+                            href={tool.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-[var(--primary)] transition-colors"
+                          >
+                            {tool.name}
+                          </a>
+                        </h3>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="status-success text-xs">
                             {tool.category.name}
-                          </p>
-                          {tool.description && (
-                            <p className="mt-1 text-sm text-gray-600">
-                              {tool.description}
-                            </p>
-                          )}
+                          </span>
                         </div>
-                        <div className="flex space-x-2">
-                          {canCreateEdit && (
-                            <Link
-                              href={`/tools/${tool.id}/edit`}
-                              className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                            >
-                              Edit
-                            </Link>
-                          )}
-                          {canDelete && (
-                            <button
-                              onClick={() => handleDelete(tool.id, tool.name)}
-                              disabled={deletingId === tool.id}
-                              className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
-                            >
-                              {deletingId === tool.id
-                                ? "Deleting..."
-                                : "Delete"}
-                            </button>
-                          )}
+                        {tool.description && (
+                          <p className="prose-muted text-sm mb-2 line-clamp-2">
+                            {tool.description}
+                          </p>
+                        )}
+                        <div className="text-xs prose-muted">
+                          Created by {tool.created_by?.name || "Unknown"} on{" "}
+                          {new Date(tool.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="mt-2 text-xs text-gray-400">
-                        Created by {tool.created_by?.name || "Unknown"} on{" "}
-                        {new Date(tool.created_at).toLocaleDateString()}
+                      <div className="flex items-center space-x-2 ml-4">
+                        {canCreateEdit && (
+                          <Link
+                            href={`/tools/${tool.id}/edit`}
+                            className="btn-outline btn-sm"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(tool.id, tool.name)}
+                            disabled={deletingId === tool.id}
+                            className="btn-danger btn-sm disabled"
+                            aria-busy={deletingId === tool.id}
+                          >
+                            {deletingId === tool.id ? "Deleting..." : "Delete"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex justify-center">
-            <nav className="flex space-x-2">
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="px-3 py-2 text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </nav>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <nav className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="btn-outline btn-sm disabled"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-sm prose-muted">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="btn-outline btn-sm disabled"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }
