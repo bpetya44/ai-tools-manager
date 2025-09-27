@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\TwoFactorCode;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -231,6 +234,110 @@ class TwoFactorController extends Controller
         return response()->json([
             'recovery_codes' => $recoveryCodes,
             'message' => 'Recovery codes have been regenerated successfully.',
+        ]);
+    }
+
+    /**
+     * Send Email OTP code.
+     */
+    public function sendEmailCode(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Check if user already has a valid code
+        if (TwoFactorCode::hasValidCode($user, 'email')) {
+            return response()->json([
+                'code' => 'code_already_sent',
+                'message' => 'A verification code has already been sent. Please check your email or wait before requesting another.',
+            ], 400);
+        }
+
+        // Generate and store the code
+        $codeRecord = TwoFactorCode::generate($user, 'email');
+        $code = TwoFactorCode::getCodeForLogging($user, 'email');
+
+        // In development, log the code
+        if (app()->environment('local', 'testing') && $code) {
+            Log::info("2FA Email Code for {$user->email}: {$code}");
+        }
+
+        // Send email (in production)
+        if (app()->environment('production')) {
+            try {
+                Mail::raw(
+                    "Your 2FA verification code is: {$code}\n\nThis code will expire in 10 minutes.",
+                    function ($message) use ($user) {
+                        $message->to($user->email)
+                            ->subject('Two-Factor Authentication Code');
+                    }
+                );
+            } catch (\Exception $e) {
+                Log::error("Failed to send 2FA email to {$user->email}: " . $e->getMessage());
+                return response()->json([
+                    'code' => 'email_send_failed',
+                    'message' => 'Failed to send verification code. Please try again.',
+                ], 500);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Verification code sent to your email.',
+            'expires_in_minutes' => 10,
+        ]);
+    }
+
+    /**
+     * Verify Email OTP code.
+     */
+    public function verifyEmailCode(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'code' => 'validation_error',
+                'message' => 'Invalid code format.',
+                'details' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+        $code = $request->code;
+
+        if (!TwoFactorCode::verify($user, $code, 'email')) {
+            AuditLog::log(
+                '2fa_email_verify_failed',
+                User::class,
+                $user->id,
+                ['ip_address' => $request->ip()],
+                $user->id,
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            return response()->json([
+                'code' => 'invalid_code',
+                'message' => 'Invalid or expired verification code.',
+            ], 400);
+        }
+
+        // Mark email 2FA as verified for this session
+        $request->session()->put('2fa_email_verified', true);
+
+        AuditLog::log(
+            '2fa_email_verified',
+            User::class,
+            $user->id,
+            ['ip_address' => $request->ip()],
+            $user->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        return response()->json([
+            'message' => 'Email verification successful.',
         ]);
     }
 }

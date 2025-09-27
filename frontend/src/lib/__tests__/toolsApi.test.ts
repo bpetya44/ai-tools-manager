@@ -44,7 +44,7 @@ describe("toolsApi", () => {
       const result = await getTools(mockToken, { q: "test" });
 
       expect(mockApiRequestWithAuth).toHaveBeenCalledWith(
-        "/tools-list?q=test",
+        "/tools?q=test",
         mockToken
       );
       expect(result).toEqual(mockResponse);
@@ -66,7 +66,7 @@ describe("toolsApi", () => {
       });
 
       expect(mockApiRequestWithAuth).toHaveBeenCalledWith(
-        "/tools-list?q=analytics&category_id=1&page=2&per_page=10",
+        "/tools?q=analytics&category_id=1&page=2&per_page=10",
         mockToken
       );
     });
@@ -97,14 +97,10 @@ describe("toolsApi", () => {
 
       const result = await createTool(mockToken, toolData);
 
-      expect(mockApiRequestWithAuth).toHaveBeenCalledWith(
-        "/tools-list",
-        mockToken,
-        {
-          method: "POST",
-          body: JSON.stringify(toolData),
-        }
-      );
+      expect(mockApiRequestWithAuth).toHaveBeenCalledWith("/tools", mockToken, {
+        method: "POST",
+        body: JSON.stringify(toolData),
+      });
       expect(result).toEqual(mockResponse);
     });
   });
@@ -121,7 +117,7 @@ describe("toolsApi", () => {
       const result = await deleteTool(mockToken, toolId);
 
       expect(mockApiRequestWithAuth).toHaveBeenCalledWith(
-        `/tools-list/${toolId}`,
+        `/tools/${toolId}`,
         mockToken,
         {
           method: "DELETE",

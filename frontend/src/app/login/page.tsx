@@ -11,6 +11,9 @@ import Alert from "@/components/Alert";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [tempToken, setTempToken] = useState("");
+  const [requires2FA, setRequires2FA] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -22,16 +25,39 @@ export default function Login() {
     setLoading(true);
 
     try {
+      const requestBody = { email, password };
+
+      // If we have a temp token, include it and the 2FA code
+      if (tempToken) {
+        requestBody.temp_token = tempToken;
+        requestBody.two_factor_code = twoFactorCode;
+      } else if (requires2FA) {
+        requestBody.two_factor_code = twoFactorCode;
+      }
+
       const data = await apiRequest("/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       });
 
-      console.log("✅ Login successful, redirecting...");
+      // Login successful, redirecting
       login(data.token, data.user);
       router.push("/");
     } catch (err) {
       if (err instanceof ApiError) {
+        const errorData = err.data;
+
+        // Handle 2FA requirement
+        if (
+          errorData?.code === "two_factor_required" &&
+          errorData?.temp_token
+        ) {
+          setRequires2FA(true);
+          setTempToken(errorData.temp_token);
+          setError("Please enter your 2FA code to continue.");
+          return;
+        }
+
         setError(err.message);
       } else {
         setError("Network error. Please try again.");
@@ -84,24 +110,60 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={loading}
+                disabled={loading || requires2FA}
               />
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full btn-lg"
-                aria-busy={loading}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign in"
+              {requires2FA && (
+                <FormField
+                  label="Two-Factor Authentication Code"
+                  name="two_factor_code"
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  required
+                  disabled={loading}
+                  maxLength={6}
+                  hint="Enter the 6-digit code from your authenticator app or recovery code"
+                />
+              )}
+
+              <div className="flex space-x-3">
+                {requires2FA && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRequires2FA(false);
+                      setTempToken("");
+                      setTwoFactorCode("");
+                      setError("");
+                    }}
+                    disabled={loading}
+                    className="btn-secondary flex-1 btn-lg"
+                  >
+                    Back
+                  </button>
                 )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`${
+                    requires2FA ? "flex-1" : "w-full"
+                  } btn-primary btn-lg`}
+                  aria-busy={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      {requires2FA ? "Verifying..." : "Signing in..."}
+                    </>
+                  ) : requires2FA ? (
+                    "Verify Code"
+                  ) : (
+                    "Sign in"
+                  )}
+                </button>
+              </div>
             </form>
           </div>
 

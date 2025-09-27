@@ -24,25 +24,9 @@ export async function apiRequest<T = any>(
     endpoint.startsWith("/") ? "" : "/"
   }${endpoint}`;
 
-  console.log("🔍 API REQUEST DEBUG:");
-  console.log("URL:", url);
-  console.log("Method:", options.method || "GET");
-  console.log("Headers:", options.headers);
+  // Debug logging removed for production
 
-  if (options.body && typeof options.body === "string") {
-    try {
-      const bodyObj = JSON.parse(options.body);
-      if (bodyObj.password) {
-        bodyObj.password = "[REDACTED]";
-      }
-      if (bodyObj.password_confirmation) {
-        bodyObj.password_confirmation = "[REDACTED]";
-      }
-      console.log("Body (passwords redacted):", bodyObj);
-    } catch {
-      console.log("Body:", options.body);
-    }
-  }
+  // Body logging removed for production
 
   try {
     const response = await fetch(url, {
@@ -53,13 +37,7 @@ export async function apiRequest<T = any>(
       ...options,
     });
 
-    console.log("📡 API RESPONSE DEBUG:");
-    console.log("Status:", response.status);
-    console.log("Status Text:", response.statusText);
-    console.log("Headers:", Object.fromEntries(response.headers.entries()));
-
     const data = await response.json();
-    console.log("📄 Response Data:", data);
 
     if (!response.ok) {
       throw new ApiError(
@@ -71,7 +49,7 @@ export async function apiRequest<T = any>(
 
     return data;
   } catch (error) {
-    console.error("🚨 API NETWORK ERROR:", error);
+    // Network error logging removed for production
 
     if (error instanceof ApiError) {
       throw error;

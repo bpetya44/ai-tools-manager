@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -12,7 +13,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::withCount('tools')->get();
+        $categories = CacheService::getCategories();
         return response()->json(['data' => $categories]);
     }
 

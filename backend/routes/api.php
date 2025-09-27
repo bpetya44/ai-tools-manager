@@ -6,7 +6,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PasswordResetController;
-use App\Http\Controllers\ToolController;
 use App\Http\Controllers\ToolsToolController;
 use App\Http\Controllers\TwoFactorController;
 
@@ -27,17 +26,7 @@ Route::get('/health', function () {
     ]);
 });
 
-// Debug endpoint for testing PUT requests
-Route::put('/debug-put', function (Request $request) {
-    return response()->json([
-        'method' => $request->method(),
-        'content_type' => $request->header('Content-Type'),
-        'raw_input' => $request->getContent(),
-        'json_data' => json_decode($request->getContent(), true),
-        'all_data' => $request->all(),
-        'only_name' => $request->only(['name']),
-    ]);
-});
+// Debug endpoint removed for production
 
 // Authentication routes with throttling
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1'); // 5 attempts per minute
@@ -66,6 +55,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
     Route::post('/2fa/disable', [TwoFactorController::class, 'disable']);
     Route::post('/2fa/regenerate-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes']);
+
+    // Email OTP routes
+    Route::post('/2fa/email/send', [TwoFactorController::class, 'sendEmailCode']);
+    Route::post('/2fa/email/verify', [TwoFactorController::class, 'verifyEmailCode']);
 });
 
 // Admin routes (Admin only)
@@ -75,6 +68,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin/users/{user}', [AdminController::class, 'showUser']);
     Route::put('/admin/users/{user}/role', [AdminController::class, 'updateUserRole']);
     Route::put('/admin/users/{user}/status', [AdminController::class, 'toggleUserStatus']);
+    Route::get('/admin/tools', [AdminController::class, 'tools']);
     Route::get('/admin/audit-logs', [AdminController::class, 'auditLogs']);
     Route::get('/admin/roles', [AdminController::class, 'roles']);
 });
@@ -101,5 +95,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Delete tools (Admin only) with throttling
     Route::middleware(['role:admin', 'throttle:5,1'])->group(function () {
         Route::delete('/tools/{toolsTool}', [ToolsToolController::class, 'destroy']);
+    });
+
+    // Tool approval routes (Admin only)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::post('/tools/{toolsTool}/approve', [ToolsToolController::class, 'approve']);
+        Route::post('/tools/{toolsTool}/reject', [ToolsToolController::class, 'reject']);
     });
 });

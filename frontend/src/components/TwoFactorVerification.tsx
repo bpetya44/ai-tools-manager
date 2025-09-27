@@ -96,8 +96,9 @@ export default function TwoFactorVerification({
               type="button"
               className="text-[var(--primary)] hover:text-[var(--primary-600)] underline"
               onClick={() => {
-                // TODO: Implement recovery code flow
-                alert("Recovery code flow not implemented yet");
+                // Recovery codes are handled by the same verification endpoint
+                // Users can enter their recovery code in the 2FA code field
+                alert("Enter your recovery code in the 2FA code field above");
               }}
             >
               Use recovery code

@@ -26,7 +26,7 @@ class ToolsToolTest extends TestCase
         $user = User::where('email', 'user@example.com')->first();
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/tools-list');
+        $response = $this->getJson('/api/tools');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -56,7 +56,7 @@ class ToolsToolTest extends TestCase
         $user = User::where('email', 'user@example.com')->first();
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/tools-list?q=Google');
+        $response = $this->getJson('/api/tools?q=Google');
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -73,7 +73,7 @@ class ToolsToolTest extends TestCase
 
         $analyticsCategory = ToolsCategory::where('name', 'Analytics')->first();
 
-        $response = $this->getJson("/api/tools-list?category_id={$analyticsCategory->id}");
+        $response = $this->getJson("/api/tools?category_id={$analyticsCategory->id}");
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -91,7 +91,7 @@ class ToolsToolTest extends TestCase
 
         $category = ToolsCategory::first();
 
-        $response = $this->postJson('/api/tools-list', [
+        $response = $this->postJson('/api/tools', [
             'name' => 'Test Tool',
             'url' => 'https://example.com',
             'description' => 'A test tool',
@@ -112,7 +112,7 @@ class ToolsToolTest extends TestCase
 
         $category = ToolsCategory::first();
 
-        $response = $this->postJson('/api/tools-list', [
+        $response = $this->postJson('/api/tools', [
             'name' => 'Test Tool',
             'url' => 'https://example.com',
             'description' => 'A test tool',
@@ -148,7 +148,7 @@ class ToolsToolTest extends TestCase
 
         $category = ToolsCategory::first();
 
-        $response = $this->postJson('/api/tools-list', [
+        $response = $this->postJson('/api/tools', [
             'name' => 'Admin Tool',
             'url' => 'https://admin.example.com',
             'description' => 'An admin tool',
@@ -171,7 +171,7 @@ class ToolsToolTest extends TestCase
         $tool = ToolsTool::first();
         $category = ToolsCategory::first();
 
-        $response = $this->putJson("/api/tools-list/{$tool->id}", [
+        $response = $this->putJson("/api/tools/{$tool->id}", [
             'name' => 'Updated Tool Name',
             'url' => 'https://updated.example.com',
             'description' => 'Updated description',
@@ -201,7 +201,7 @@ class ToolsToolTest extends TestCase
         $tool = ToolsTool::first();
         $category = ToolsCategory::first();
 
-        $response = $this->putJson("/api/tools-list/{$tool->id}", [
+        $response = $this->putJson("/api/tools/{$tool->id}", [
             'name' => 'Updated Tool Name',
             'url' => 'https://updated.example.com',
             'description' => 'Updated description',
@@ -222,7 +222,7 @@ class ToolsToolTest extends TestCase
 
         $tool = ToolsTool::first();
 
-        $response = $this->deleteJson("/api/tools-list/{$tool->id}");
+        $response = $this->deleteJson("/api/tools/{$tool->id}");
 
         $response->assertStatus(403)
             ->assertJson([
@@ -238,7 +238,7 @@ class ToolsToolTest extends TestCase
 
         $tool = ToolsTool::first();
 
-        $response = $this->deleteJson("/api/tools-list/{$tool->id}");
+        $response = $this->deleteJson("/api/tools/{$tool->id}");
 
         $response->assertStatus(200)
             ->assertJson([
@@ -255,7 +255,7 @@ class ToolsToolTest extends TestCase
         $admin = User::where('email', 'admin@example.com')->first();
         Sanctum::actingAs($admin);
 
-        $response = $this->postJson('/api/tools-list', [
+        $response = $this->postJson('/api/tools', [
             'name' => '', // Invalid: empty name
             'url' => 'not-a-url', // Invalid: not a URL
             'category_id' => 999, // Invalid: category doesn't exist
@@ -275,7 +275,7 @@ class ToolsToolTest extends TestCase
 
     public function test_unauthenticated_user_cannot_access_tools(): void
     {
-        $response = $this->getJson('/api/tools-list');
+        $response = $this->getJson('/api/tools');
 
         $response->assertStatus(401)
             ->assertJson([

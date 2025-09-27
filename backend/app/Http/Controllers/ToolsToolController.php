@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateToolRequest;
 use App\Http\Resources\ToolResource;
 use App\Models\AuditLog;
 use App\Models\ToolsTool;
+use App\Services\CacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -30,9 +31,14 @@ class ToolsToolController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        // Filter by status
+        if ($request->has('status') && !empty($request->status)) {
+            $query->where('status', $request->status);
+        }
+
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $tools = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $tools = $query->with(['category', 'creator', 'approver'])->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json([
             'data' => ToolResource::collection($tools->items()),
@@ -93,6 +99,9 @@ class ToolsToolController extends Controller
             $request->ip(),
             $request->userAgent()
         );
+
+        // Invalidate cache
+        CacheService::invalidateToolCounts();
 
         return response()->json([
             'message' => 'Tool created successfully',
@@ -170,6 +179,9 @@ class ToolsToolController extends Controller
             $request->userAgent()
         );
 
+        // Invalidate cache
+        CacheService::invalidateToolCounts();
+
         return response()->json([
             'message' => 'Tool updated successfully',
             'data' => new ToolResource($toolsTool),
@@ -201,8 +213,78 @@ class ToolsToolController extends Controller
             $request->userAgent()
         );
 
+        // Invalidate cache
+        CacheService::invalidateToolCounts();
+
         return response()->json([
             'message' => 'Tool deleted successfully',
+        ]);
+    }
+
+    /**
+     * Approve a tool (Admin only).
+     */
+    public function approve(Request $request, ToolsTool $toolsTool): JsonResponse
+    {
+        $toolsTool->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+            'approved_by' => $request->user()->id,
+        ]);
+
+        AuditLog::log(
+            'tool_approved',
+            ToolsTool::class,
+            $toolsTool->id,
+            [
+                'tool_name' => $toolsTool->name,
+                'approved_by' => $request->user()->name,
+                'ip_address' => $request->ip(),
+            ],
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        // Invalidate cache
+        CacheService::invalidateToolCounts();
+
+        return response()->json([
+            'message' => 'Tool approved successfully',
+            'data' => new ToolResource($toolsTool->load(['category', 'creator', 'approver'])),
+        ]);
+    }
+
+    /**
+     * Reject a tool (Admin only).
+     */
+    public function reject(Request $request, ToolsTool $toolsTool): JsonResponse
+    {
+        $toolsTool->update([
+            'status' => 'rejected',
+            'approved_by' => $request->user()->id,
+        ]);
+
+        AuditLog::log(
+            'tool_rejected',
+            ToolsTool::class,
+            $toolsTool->id,
+            [
+                'tool_name' => $toolsTool->name,
+                'rejected_by' => $request->user()->name,
+                'ip_address' => $request->ip(),
+            ],
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        // Invalidate cache
+        CacheService::invalidateToolCounts();
+
+        return response()->json([
+            'message' => 'Tool rejected successfully',
+            'data' => new ToolResource($toolsTool->load(['category', 'creator', 'approver'])),
         ]);
     }
 }

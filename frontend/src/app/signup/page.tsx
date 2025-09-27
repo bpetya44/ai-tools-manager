@@ -40,7 +40,7 @@ export default function Signup() {
         }),
       });
 
-      console.log("✅ Signup successful, redirecting...");
+      // Signup successful, redirecting
       login(data.token, data.user);
       router.push("/");
     } catch (err) {
