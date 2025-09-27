@@ -15,6 +15,9 @@ interface User {
   name: string;
   email: string;
   role?: Role;
+  two_factor_enabled?: boolean;
+  is_active?: boolean;
+  email_verified_at?: string | null;
 }
 
 interface AuthContextType {

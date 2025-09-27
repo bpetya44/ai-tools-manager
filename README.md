@@ -19,8 +19,13 @@ Implements secure **authentication (Bearer tokens with Sanctum)**, **role-based 
 ⚡ **Features**
 
 - JWT-style bearer token authentication with Laravel Sanctum
+- **Two-Factor Authentication (2FA)** with TOTP and recovery codes
 - Role-based access control (RBAC) with Admin/Manager/User roles
 - **Complete Tools Management System** with full CRUD operations
+- **Admin Panel** for user management and system monitoring
+- **Audit Logging** for all user actions and system changes
+- **Rate Limiting** on authentication and sensitive endpoints
+- **Password Reset** and email verification flows
 - Search and filter tools by name and category
 - Form validation (client-side and server-side)
 - Standardized JSON API responses with error handling
@@ -177,6 +182,21 @@ The system comes pre-seeded with:
 
 ## 🧪 Testing
 
+### Security Features Test
+
+```bash
+# Run comprehensive security test
+node scripts/test-security.mjs
+
+# This tests:
+# - 2FA setup and verification
+# - Admin panel functionality
+# - Rate limiting
+# - Audit logging
+# - Password reset flow
+# - API endpoints
+```
+
 ### Backend Tests (PHPUnit)
 
 ```bash
@@ -276,6 +296,54 @@ All services are isolated with unique names: `vibecode-full-stack-starter-kit_*`
 - **mysql** - MySQL 8.0 database
 - **redis** - Redis cache server
 - **tools** - Development utilities container
+
+## 🔐 Security Features
+
+### Two-Factor Authentication (2FA)
+
+- **TOTP Support**: Compatible with Google Authenticator, Authy, and similar apps
+- **Recovery Codes**: 8 single-use codes for account recovery
+- **Enable/Disable**: Users can manage 2FA from their settings
+- **QR Code Setup**: Easy setup with visual QR codes
+- **Manual Entry**: Alternative setup with secret keys
+
+### Admin Panel
+
+- **User Management**: View, search, and filter all users
+- **Role Management**: Change user roles (Admin only)
+- **Account Status**: Activate/deactivate user accounts
+- **Dashboard Stats**: System overview and user statistics
+- **Audit Logs**: View all system activities and changes
+
+### Audit Logging
+
+- **Comprehensive Tracking**: All CRUD operations on tools and users
+- **User Actions**: Login, logout, 2FA setup, password changes
+- **IP Tracking**: Record IP addresses for security monitoring
+- **Detailed Payloads**: Store old/new values for change tracking
+- **Searchable Logs**: Filter by user, action, date range, model type
+
+### Rate Limiting
+
+- **Authentication**: 5 attempts per minute for login/register
+- **Password Reset**: 3 attempts per minute for reset requests
+- **Tool Operations**: 10 attempts per minute for create/update
+- **Admin Actions**: 5 attempts per minute for delete operations
+- **Email Verification**: 3 attempts per minute for resend requests
+
+### Password Security
+
+- **Reset Flow**: Secure password reset with time-limited tokens
+- **Email Verification**: Required for new accounts
+- **Token Expiration**: 1-hour expiry for reset tokens
+- **Secure Storage**: Passwords hashed with Laravel's built-in hashing
+
+### API Security
+
+- **Bearer Token Auth**: Maintained throughout all new features
+- **CORS Protection**: Properly configured for frontend-backend communication
+- **Input Validation**: Server-side validation for all endpoints
+- **Error Handling**: Standardized error responses without information leakage
 
 ## 💻 Development Commands
 

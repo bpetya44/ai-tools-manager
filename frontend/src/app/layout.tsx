@@ -56,6 +56,18 @@ export default function RootLayout({
                     >
                       Tools
                     </a>
+                    <a
+                      href="/settings"
+                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                    >
+                      Settings
+                    </a>
+                    <a
+                      href="/admin"
+                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+                    >
+                      Admin
+                    </a>
                   </nav>
                 </div>
               </div>

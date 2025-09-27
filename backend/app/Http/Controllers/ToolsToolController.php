@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreToolRequest;
 use App\Http\Requests\UpdateToolRequest;
 use App\Http\Resources\ToolResource;
+use App\Models\AuditLog;
 use App\Models\ToolsTool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,6 +79,21 @@ class ToolsToolController extends Controller
 
         $tool->load(['category', 'creator']);
 
+        // Log the creation
+        AuditLog::log(
+            'tool_created',
+            ToolsTool::class,
+            $tool->id,
+            [
+                'tool_name' => $tool->name,
+                'category_id' => $tool->category_id,
+                'ip_address' => $request->ip(),
+            ],
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
+
         return response()->json([
             'message' => 'Tool created successfully',
             'data' => new ToolResource($tool),
@@ -128,11 +144,31 @@ class ToolsToolController extends Controller
         // Validate the data
         $validatedData = $request->validate($rules);
 
+        // Store old values for audit log
+        $oldValues = $toolsTool->toArray();
+
         // Use the JSON data for the update
         $toolsTool->fill($data);
         $result = $toolsTool->save();
 
         $toolsTool->load(['category', 'creator']);
+
+        // Log the update
+        AuditLog::log(
+            'tool_updated',
+            ToolsTool::class,
+            $toolsTool->id,
+            [
+                'tool_name' => $toolsTool->name,
+                'old_values' => $oldValues,
+                'new_values' => $toolsTool->toArray(),
+                'changed_fields' => array_keys($data),
+                'ip_address' => $request->ip(),
+            ],
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
 
         return response()->json([
             'message' => 'Tool updated successfully',
@@ -143,9 +179,27 @@ class ToolsToolController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ToolsTool $toolsTool): JsonResponse
+    public function destroy(Request $request, ToolsTool $toolsTool): JsonResponse
     {
+        // Store tool data for audit log before deletion
+        $toolData = $toolsTool->toArray();
+
         $toolsTool->delete();
+
+        // Log the deletion
+        AuditLog::log(
+            'tool_deleted',
+            ToolsTool::class,
+            $toolsTool->id,
+            [
+                'tool_name' => $toolData['name'],
+                'category_id' => $toolData['category_id'],
+                'ip_address' => $request->ip(),
+            ],
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
 
         return response()->json([
             'message' => 'Tool deleted successfully',

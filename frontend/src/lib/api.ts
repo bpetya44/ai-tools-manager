@@ -90,11 +90,34 @@ export async function apiRequestWithAuth<T = any>(
   token: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  return apiRequest<T>(endpoint, {
+  const authOptions: RequestInit = {
     ...options,
     headers: {
-      ...options.headers,
+      "Content-Type": "application/json",
+      Accept: "application/json",
       Authorization: `Bearer ${token}`,
+      ...options.headers,
     },
-  });
+  };
+
+  try {
+    return await apiRequest<T>(endpoint, authOptions);
+  } catch (error) {
+    // Handle 401 errors globally
+    if (error instanceof ApiError && error.status === 401) {
+      console.warn(
+        "Authentication failed, clearing token and redirecting to login"
+      );
+
+      // Clear stored authentication data
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      // Redirect to login page
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+    }
+    throw error;
+  }
 }

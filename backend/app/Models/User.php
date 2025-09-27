@@ -24,6 +24,15 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'two_factor_secret',
+        'recovery_codes',
+        'two_factor_confirmed_at',
+        'two_factor_enabled',
+        'email_verified_at',
+        'email_verification_token',
+        'password_reset_token',
+        'password_reset_token_expires_at',
+        'is_active',
     ];
 
     /**
@@ -34,6 +43,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'recovery_codes',
+        'email_verification_token',
+        'password_reset_token',
     ];
 
     /**
@@ -46,6 +59,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_enabled' => 'boolean',
+            'recovery_codes' => 'array',
+            'password_reset_token_expires_at' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -79,5 +97,68 @@ class User extends Authenticatable
     public function isManager(): bool
     {
         return $this->hasRole('manager');
+    }
+
+    /**
+     * Check if user has 2FA enabled.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_enabled && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * Check if user is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * Check if user's email is verified.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    /**
+     * Get recovery codes for 2FA.
+     */
+    public function getRecoveryCodes(): array
+    {
+        return $this->recovery_codes ?? [];
+    }
+
+    /**
+     * Generate new recovery codes.
+     */
+    public function generateRecoveryCodes(): array
+    {
+        $codes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $codes[] = strtoupper(substr(str_shuffle('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 8));
+        }
+
+        $this->update(['recovery_codes' => $codes]);
+        return $codes;
+    }
+
+    /**
+     * Use a recovery code (remove it from the list).
+     */
+    public function useRecoveryCode(string $code): bool
+    {
+        $codes = $this->getRecoveryCodes();
+        $index = array_search($code, $codes);
+
+        if ($index !== false) {
+            unset($codes[$index]);
+            $this->update(['recovery_codes' => array_values($codes)]);
+            return true;
+        }
+
+        return false;
     }
 }
