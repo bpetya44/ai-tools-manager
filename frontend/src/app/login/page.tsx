@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, ApiError } from "@/lib/api";
 import FormField from "@/components/FormField";
+import PasswordField from "@/components/PasswordField";
 import Alert from "@/components/Alert";
 
 export default function Login() {
@@ -102,10 +103,9 @@ export default function Login() {
                 hint="We'll never share your email with anyone else"
               />
 
-              <FormField
+              <PasswordField
                 label="Password"
                 name="password"
-                type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
 
 const interSans = Inter({
   variable: "--font-inter-sans",
@@ -31,47 +32,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
-            {/* Header */}
-            <header className="border-b border-[var(--border)] bg-[var(--card)]">
-              <div className="max-w-7xl mx-auto px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">AT</span>
-                    </div>
-                    <h1 className="prose-title text-[var(--text)]">
-                      AI Tools Manager
-                    </h1>
-                  </div>
-                  <nav className="hidden md:flex items-center space-x-6">
-                    <a
-                      href="/"
-                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-                    >
-                      Dashboard
-                    </a>
-                    <a
-                      href="/tools"
-                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-                    >
-                      Tools
-                    </a>
-                    <a
-                      href="/settings"
-                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-                    >
-                      Settings
-                    </a>
-                    <a
-                      href="/admin"
-                      className="text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-                    >
-                      Admin
-                    </a>
-                  </nav>
-                </div>
-              </div>
-            </header>
+            <Header />
 
             {/* Main Content */}
             <main className="flex-1">

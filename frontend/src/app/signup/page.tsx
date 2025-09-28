@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, ApiError } from "@/lib/api";
 import FormField from "@/components/FormField";
+import PasswordField from "@/components/PasswordField";
 import Alert from "@/components/Alert";
 
 export default function Signup() {
@@ -100,10 +101,9 @@ export default function Signup() {
                 hint="We'll never share your email with anyone else"
               />
 
-              <FormField
+              <PasswordField
                 label="Password"
                 name="password"
-                type="password"
                 placeholder="Create a strong password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -112,10 +112,9 @@ export default function Signup() {
                 hint="Must be at least 8 characters long"
               />
 
-              <FormField
+              <PasswordField
                 label="Confirm password"
                 name="password_confirmation"
-                type="password"
                 placeholder="Confirm your password"
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
