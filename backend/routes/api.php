@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\ToolsToolController;
 use App\Http\Controllers\TwoFactorController;
 
@@ -102,4 +104,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/tools/{toolsTool}/approve', [ToolsToolController::class, 'approve']);
         Route::post('/tools/{toolsTool}/reject', [ToolsToolController::class, 'reject']);
     });
+
+    // Comments routes
+    Route::post('/tools/{toolsTool}/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Ratings routes
+    Route::post('/tools/{toolsTool}/rating', [RatingController::class, 'store']);
+    Route::delete('/ratings/{rating}', [RatingController::class, 'destroy']);
 });

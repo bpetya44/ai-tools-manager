@@ -37,6 +37,11 @@ export async function apiRequest<T = any>(
       ...options,
     });
 
+    // Handle 204 No Content responses
+    if (response.status === 204) {
+      return { message: "Success" };
+    }
+
     const data = await response.json();
 
     if (!response.ok) {

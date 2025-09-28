@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ToolsTool extends Model
 {
@@ -76,5 +77,37 @@ class ToolsTool extends Model
     public function scopeRejected($query)
     {
         return $query->where('status', 'rejected');
+    }
+
+    /**
+     * Get the comments for the tool.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'tool_id');
+    }
+
+    /**
+     * Get the ratings for the tool.
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'tool_id');
+    }
+
+    /**
+     * Get the average rating for the tool.
+     */
+    public function getAverageRatingAttribute(): ?float
+    {
+        return $this->ratings()->avg('score');
+    }
+
+    /**
+     * Get the ratings count for the tool.
+     */
+    public function getRatingsCountAttribute(): int
+    {
+        return $this->ratings()->count();
     }
 }

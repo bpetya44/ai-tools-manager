@@ -38,7 +38,11 @@ class ToolsToolController extends Controller
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $tools = $query->with(['category', 'creator', 'approver'])->orderBy('created_at', 'desc')->paginate($perPage);
+        $tools = $query->with(['category', 'creator', 'approver'])
+            ->withAvg('ratings', 'score')
+            ->withCount('ratings')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
         return response()->json([
             'data' => ToolResource::collection($tools->items()),
@@ -112,12 +116,32 @@ class ToolsToolController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ToolsTool $toolsTool): JsonResponse
+    public function show(Request $request, ToolsTool $toolsTool): JsonResponse
     {
-        $toolsTool->load(['category', 'creator']);
+        // Use cache service for tool detail
+        $cachedTool = CacheService::getToolDetail($toolsTool->id);
+
+        if (!$cachedTool) {
+            return response()->json([
+                'code' => 'NOT_FOUND',
+                'message' => 'Tool not found',
+            ], 404);
+        }
+
+        // Get user's current rating if authenticated
+        $userRating = null;
+        if ($request->user()) {
+            $userRating = $cachedTool->ratings()
+                ->where('user_id', $request->user()->id)
+                ->first();
+        }
+
+        // Add user rating to the tool data
+        $cachedTool->user_rating = $userRating ? $userRating->score : null;
+        $cachedTool->user_rating_id = $userRating ? $userRating->id : null;
 
         return response()->json([
-            'data' => new ToolResource($toolsTool),
+            'data' => new ToolResource($cachedTool),
         ]);
     }
 

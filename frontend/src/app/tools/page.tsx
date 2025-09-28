@@ -229,28 +229,60 @@ export default function ToolsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-[var(--text)] mb-1">
-                          <a
-                            href={tool.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <Link
+                            href={`/tools/${tool.id}`}
                             className="hover:text-[var(--primary)] transition-colors"
                           >
                             {tool.name}
-                          </a>
+                          </Link>
                         </h3>
                         <div className="flex items-center space-x-2 mb-2">
                           <span className="status-success text-xs">
                             {tool.category.name}
                           </span>
+                          {tool.avg_rating && (
+                            <div className="flex items-center space-x-1">
+                              <div className="flex items-center">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <svg
+                                    key={star}
+                                    className={`w-3 h-3 ${
+                                      star <= Math.round(tool.avg_rating!)
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                ))}
+                              </div>
+                              <span className="text-xs prose-muted">
+                                {tool.avg_rating.toFixed(1)} (
+                                {tool.ratings_count || 0})
+                              </span>
+                            </div>
+                          )}
                         </div>
                         {tool.description && (
                           <p className="prose-muted text-sm mb-2 line-clamp-2">
                             {tool.description}
                           </p>
                         )}
-                        <div className="text-xs prose-muted">
-                          Created by {tool.created_by?.name || "Unknown"} on{" "}
-                          {new Date(tool.created_at).toLocaleDateString()}
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs prose-muted">
+                            Created by {tool.created_by?.name || "Unknown"} on{" "}
+                            {new Date(tool.created_at).toLocaleDateString()}
+                          </div>
+                          <a
+                            href={tool.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-outline btn-xs"
+                          >
+                            Visit Tool
+                          </a>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 ml-4">

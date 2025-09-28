@@ -14,6 +14,31 @@ export interface Tool {
     name: string;
     email: string;
   };
+  avg_rating?: number;
+  ratings_count?: number;
+  user_rating?: number;
+  user_rating_id?: number;
+  comments?: Comment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Comment {
+  id: number;
+  body: string;
+  user: {
+    id: number;
+    name: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Rating {
+  id: number;
+  score: number;
+  tool_id: number;
+  user_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -118,4 +143,70 @@ export async function getToolCategories(
   token: string
 ): Promise<{ data: Category[] }> {
   return apiRequestWithAuth<{ data: Category[] }>("/tools-categories", token);
+}
+
+// Comments API
+export interface CreateCommentRequest {
+  body: string;
+}
+
+export async function createComment(
+  token: string,
+  toolId: number,
+  comment: CreateCommentRequest
+): Promise<{ message: string; data: Comment }> {
+  return apiRequestWithAuth<{ message: string; data: Comment }>(
+    `/tools/${toolId}/comments`,
+    token,
+    {
+      method: "POST",
+      body: JSON.stringify(comment),
+    }
+  );
+}
+
+export async function deleteComment(
+  token: string,
+  commentId: number
+): Promise<{ message: string }> {
+  return apiRequestWithAuth<{ message: string }>(
+    `/comments/${commentId}`,
+    token,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// Ratings API
+export interface CreateRatingRequest {
+  score: number;
+}
+
+export async function createRating(
+  token: string,
+  toolId: number,
+  rating: CreateRatingRequest
+): Promise<{ message: string; data: Rating }> {
+  return apiRequestWithAuth<{ message: string; data: Rating }>(
+    `/tools/${toolId}/rating`,
+    token,
+    {
+      method: "POST",
+      body: JSON.stringify(rating),
+    }
+  );
+}
+
+export async function deleteRating(
+  token: string,
+  ratingId: number
+): Promise<{ message: string }> {
+  return apiRequestWithAuth<{ message: string }>(
+    `/ratings/${ratingId}`,
+    token,
+    {
+      method: "DELETE",
+    }
+  );
 }

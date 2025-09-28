@@ -11,6 +11,7 @@ class CacheService
 {
     const CATEGORIES_TTL = 600; // 10 minutes
     const TOOL_COUNTS_TTL = 120; // 2 minutes
+    const TOOL_DETAIL_TTL = 90; // 1.5 minutes
     const CACHE_ENABLED = true;
 
     /**
@@ -136,6 +137,49 @@ class CacheService
     }
 
     /**
+     * Get tool detail with caching.
+     */
+    public static function getToolDetail(int $toolId)
+    {
+        if (!self::CACHE_ENABLED) {
+            return ToolsTool::with([
+                'category',
+                'creator',
+                'comments' => function ($query) {
+                    $query->with('user')->latest()->limit(10);
+                }
+            ])
+                ->withAvg('ratings', 'score')
+                ->withCount('ratings')
+                ->find($toolId);
+        }
+
+        return Cache::remember("tool:show:{$toolId}", self::TOOL_DETAIL_TTL, function () use ($toolId) {
+            return ToolsTool::with([
+                'category',
+                'creator',
+                'comments' => function ($query) {
+                    $query->with('user')->latest()->limit(10);
+                }
+            ])
+                ->withAvg('ratings', 'score')
+                ->withCount('ratings')
+                ->find($toolId);
+        });
+    }
+
+    /**
+     * Invalidate tool detail cache.
+     */
+    public static function invalidateToolDetail(int $toolId)
+    {
+        if (self::CACHE_ENABLED) {
+            Cache::forget("tool:show:{$toolId}");
+            Log::info("Tool detail cache invalidated for tool ID: {$toolId}");
+        }
+    }
+
+    /**
      * Clear all caches.
      */
     public static function clearAll()
@@ -145,6 +189,8 @@ class CacheService
             Cache::forget('tools:count:status');
             Cache::forget('tools:count:category');
             Cache::forget('dashboard:stats');
+            // Clear all tool detail caches
+            Cache::flush();
             Log::info('All caches cleared');
         }
     }

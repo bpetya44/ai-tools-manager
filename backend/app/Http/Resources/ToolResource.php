@@ -28,6 +28,11 @@ class ToolResource extends JsonResource
                 'name' => $this->creator->name,
                 'email' => $this->creator->email,
             ]),
+            'avg_rating' => $this->when(isset($this->ratings_avg_score), round($this->ratings_avg_score, 1)),
+            'ratings_count' => $this->when(isset($this->ratings_count), $this->ratings_count),
+            'user_rating' => $this->when(isset($this->user_rating), $this->user_rating),
+            'user_rating_id' => $this->when(isset($this->user_rating_id), $this->user_rating_id),
+            'comments' => $this->when(isset($this->comments), CommentResource::collection($this->comments)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

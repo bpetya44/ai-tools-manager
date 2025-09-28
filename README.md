@@ -219,8 +219,9 @@ If you're having trouble with 2FA:
 - **Two-Factor Authentication (2FA)** with TOTP, Email OTP, and recovery codes
 - **Role-based access control (RBAC)** with Admin/Manager/User roles and middleware
 - **Complete Tools Management System** with full CRUD operations and approval workflow
+- **Comments & Ratings System** with 1-5 star ratings and user comments
 - **Admin Panel** for user management, tool approval, and system monitoring
-- **Redis Caching** for categories and tool counts with automatic invalidation
+- **Redis Caching** for categories, tool counts, and tool details with automatic invalidation
 - **Audit Logging** for all user actions and system changes with IP tracking
 - **Rate Limiting** on authentication and sensitive endpoints
 - **Password Reset** and email verification flows
@@ -357,6 +358,101 @@ The application includes a complete tools management system with role-based acce
 - **Admin**: Full CRUD access (Create, Read, Update, Delete)
 - **Manager**: Create and Update access only
 - **User**: Read-only access (view and search tools)
+
+## ⭐ Comments & Ratings System
+
+### Features
+
+The system includes a comprehensive comments and ratings system for tools:
+
+- **1-5 Star Ratings**: Users can rate tools with a 5-star system
+- **User Comments**: Text comments (1-1000 characters) on tools
+- **Average Rating Display**: Shows average rating and count on tool lists and details
+- **Role-Based Permissions**: Users can delete their own comments, Admins/Managers can delete any
+- **Real-time Updates**: Ratings and comments update immediately in the UI
+- **Caching**: Tool details are cached with automatic invalidation on rating/comment changes
+
+### How It Works
+
+**Rating a Tool:**
+
+1. Navigate to any tool detail page (`/tools/{id}`)
+2. Click on the star rating (1-5 stars) in the sidebar
+3. Your rating is immediately saved and the average updates
+4. You can change your rating at any time
+
+**Adding Comments:**
+
+1. On the tool detail page, scroll to the comments section
+2. Type your comment (1-1000 characters) in the textarea
+3. Click "Add Comment" to submit
+4. Your comment appears immediately in the list
+
+**Managing Comments:**
+
+- **Your Comments**: You can delete your own comments
+- **Admin/Manager**: Can delete any comment for moderation
+- **Comments List**: Shows latest 10 comments with author name and date
+
+### Database Schema
+
+**Comments Table** (`comments`):
+
+- `id` (Primary Key)
+- `tool_id` (Foreign Key to tools_tools)
+- `user_id` (Foreign Key to users)
+- `body` (Text, 1-1000 characters)
+- `created_at`, `updated_at`
+
+**Ratings Table** (`ratings`):
+
+- `id` (Primary Key)
+- `tool_id` (Foreign Key to tools_tools)
+- `user_id` (Foreign Key to users)
+- `score` (TinyInt, 1-5)
+- `created_at`, `updated_at`
+- Unique constraint on `(tool_id, user_id)` - one rating per user per tool
+
+### API Endpoints
+
+**Comments:**
+
+- `POST /api/tools/{id}/comments` - Create a comment (any authenticated user)
+- `DELETE /api/comments/{id}` - Delete a comment (own comment or Admin/Manager)
+
+**Ratings:**
+
+- `POST /api/tools/{id}/rating` - Create or update a rating (any authenticated user)
+
+**Tool Details:**
+
+- `GET /api/tools/{id}` - Returns tool with average rating, ratings count, and latest 10 comments
+
+### Frontend Features
+
+**Tool Detail Page** (`/tools/[id]`):
+
+- Interactive star rating component
+- Comment form with character counter
+- Comments list with delete buttons (role-based)
+- Average rating display with star visualization
+- Real-time updates after rating/comment actions
+
+**Tools List Page** (`/tools`):
+
+- Shows average rating as stars next to each tool
+- Displays ratings count
+- Clickable tool names that link to detail page
+- "Visit Tool" button for external links
+
+### Caching Strategy
+
+- **Tool Details**: Cached for 90 seconds with key `tool:show:{id}`
+- **Cache Invalidation**: Automatically invalidated when:
+  - New comment is added
+  - Comment is deleted
+  - Rating is created or updated
+- **Performance**: Reduces database queries for frequently accessed tool details
 
 ### How to Add Tools via UI
 
