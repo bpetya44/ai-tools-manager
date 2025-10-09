@@ -27,11 +27,7 @@ export interface TwoFARegenerateResponse {
  * Get 2FA status for the authenticated user
  */
 export const get2FAStatus = (token: string): Promise<TwoFAStatus> => {
-  // Use user endpoint as workaround while debugging 2FA routes
-  return apiRequestWithAuth<any>("/user", token).then((user) => ({
-    enabled: user.two_factor_enabled || false,
-    confirmed_at: user.two_factor_confirmed_at || null,
-  }));
+  return apiRequestWithAuth<TwoFAStatus>("/two-factor-status", token);
 };
 
 /**

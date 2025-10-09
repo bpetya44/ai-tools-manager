@@ -46,12 +46,13 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // 2FA routes with authentication
-Route::get('/two-factor-status', function () {
+Route::get('/two-factor-status', function (Request $request) {
+    $user = $request->user();
     return response()->json([
-        'enabled' => false,
-        'confirmed_at' => null,
+        'enabled' => $user ? $user->two_factor_enabled : false,
+        'confirmed_at' => $user ? $user->two_factor_confirmed_at : null,
     ]);
-});
+})->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/2fa/enable', [TwoFactorController::class, 'enable']);
     Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);

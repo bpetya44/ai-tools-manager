@@ -39,7 +39,7 @@ class TwoFactorController extends Controller
         // Generate secret key
         $secretKey = $this->google2fa->generateSecretKey();
 
-        // Generate QR code URL
+        // Generate QR code URL (otpauth URI)
         $qrCodeUrl = $this->google2fa->getQRCodeUrl(
             config('app.name'),
             $user->email,

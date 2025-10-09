@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
+use App\Models\ToolsCategory;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -13,30 +13,16 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            [
-                'name' => 'Development Tools',
-                'slug' => 'development',
-                'description' => 'Tools for software development, coding, and programming',
-                'color' => '#10B981', // Green
-            ],
-            [
-                'name' => 'Design Tools',
-                'slug' => 'design',
-                'description' => 'Tools for UI/UX design, graphics, and visual content creation',
-                'color' => '#8B5CF6', // Purple
-            ],
-            [
-                'name' => 'Productivity Tools',
-                'slug' => 'productivity',
-                'description' => 'Tools to enhance productivity, collaboration, and workflow',
-                'color' => '#3B82F6', // Blue
-            ],
+            'Development Tools',
+            'Design Tools',
+            'Productivity Tools',
+            'Marketing Tools',
+            'Analytics Tools',
         ];
 
-        foreach ($categories as $category) {
-            Category::firstOrCreate(
-                ['slug' => $category['slug']],
-                $category
+        foreach ($categories as $categoryName) {
+            ToolsCategory::firstOrCreate(
+                ['name' => $categoryName]
             );
         }
     }

@@ -23,11 +23,13 @@ class ToolResource extends JsonResource
                 'id' => $this->category->id,
                 'name' => $this->category->name,
             ],
-            'created_by' => $this->when($this->creator, [
-                'id' => $this->creator->id,
-                'name' => $this->creator->name,
-                'email' => $this->creator->email,
-            ]),
+            'created_by' => $this->when($this->creator, function () {
+                return [
+                    'id' => $this->creator->id,
+                    'name' => $this->creator->name,
+                    'email' => $this->creator->email,
+                ];
+            }),
             'avg_rating' => $this->when(isset($this->ratings_avg_score), round($this->ratings_avg_score, 1)),
             'ratings_count' => $this->when(isset($this->ratings_count), $this->ratings_count),
             'user_rating' => $this->when(isset($this->user_rating), $this->user_rating),
